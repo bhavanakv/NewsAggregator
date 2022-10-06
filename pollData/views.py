@@ -16,7 +16,6 @@ def lastRunTime(request,pk):
     data_obj = Scrapeddata.objects.all()
     news_titles = Newsblog.objects.values('name').distinct()
     news_titles = [title.get('name') for title in news_titles]
-    print(news_titles)
     data_from_db = []
     scraped_data = []
     for obj in data_obj:
@@ -41,7 +40,6 @@ def lastRunTime(request,pk):
         "scrapedData" : scraped_data
 
     }
-    print(context)
     return render(request, "pollData.html", context)
 
 def updateRunTime():
@@ -50,6 +48,7 @@ def updateRunTime():
     runtime_obj.save()
 
 def scrapebyName(soup, name, blog_id, rows):
+    
     if name == "BBC News":
         secondary_items = soup.find_all(True, {"class":["nw-c-top-stories__primary-item","nw-c-top-stories__secondary-item"]})
         for item in secondary_items:
@@ -80,8 +79,17 @@ def scrapebyName(soup, name, blog_id, rows):
                 
             scrapedData = Scrapeddata(id=rows,headline=item_heading, description=item_description, timestamp=datetime.now(), blog=blog_id, written_by=item_link)
             scrapedData.save()
+    
 
-    updateRunTime()
+    if name == "Wired":
+        for item in soup.find_all('div', {"class": ["summary-item__content"]})[:6]:
+            rows = rows + 1
+            item_link = "https://wired.com" + item.a['href']
+            item_heading = item.a.text
+            item_description = item.find('div', {"class": "summary-item__dek"}).text
+            scrapedData = Scrapeddata(id=rows,headline=item_heading, description=item_description, timestamp=datetime.now(), blog=blog_id, written_by=item_link)
+            scrapedData.save()
+
             
 
 def addScrapeData(request):
@@ -96,5 +104,6 @@ def addScrapeData(request):
         scrapebyName(soup, link[0], link[2], rows)
         rows = Scrapeddata.objects.count()
 
+    updateRunTime()
         
     return render(request,'hello.html',{ 'name' : 'Bhavana'})
