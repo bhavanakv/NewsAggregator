@@ -47,7 +47,7 @@ def updateRunTime():
     runtime_obj.lastscrapedtime = datetime.now()
     runtime_obj.save()
 
-def scrapebyName(soup, name, blog_id, rows):
+def scrapebyWebpage(soup, name, blog_id, rows):
     
     if name == "BBC News":
         secondary_items = soup.find_all(True, {"class":["nw-c-top-stories__primary-item","nw-c-top-stories__secondary-item"]})
@@ -90,9 +90,20 @@ def scrapebyName(soup, name, blog_id, rows):
             scrapedData = Scrapeddata(id=rows,headline=item_heading, description=item_description, timestamp=datetime.now(), blog=blog_id, written_by=item_link)
             scrapedData.save()
 
+def scrapeByApi(data, name, blog_id, rows):
+    if name == "NY Times":
+        results = [result for result in data['results'] if result['title'] is not None and len(result['title']) > 1 and result['item_type'] == 'Article'][:6]
+        for result in results:
+            rows = rows + 1
+            item_heading = result['title']
+            item_description = result['abstract']
+            item_link = result['url']
+            scrapedData = Scrapeddata(id=rows,headline=item_heading, description=item_description, timestamp=datetime.now(), blog=blog_id, written_by=item_link)
+            scrapedData.save()
             
 
 def addScrapeData(request):
+    
     newsblog_objs = Newsblog.objects.all()
     links = [(obj.name, obj.link, obj) for obj in newsblog_objs]
     data = Scrapeddata.objects.all()
@@ -100,9 +111,14 @@ def addScrapeData(request):
     rows = 0
     for link in links:
         page = requests.get(link[1])
-        soup = bs(page.content, "html.parser")
-        scrapebyName(soup, link[0], link[2], rows)
+        if page.headers.get('Content-Type') == 'application/json':
+            response = page.json()
+            scrapeByApi(response, link[0], link[2], rows)
+        else:
+            soup = bs(page.content, "html.parser")
+            scrapebyWebpage(soup, link[0], link[2], rows)
         rows = Scrapeddata.objects.count()
+
 
     updateRunTime()
         
