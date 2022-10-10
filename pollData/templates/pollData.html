@@ -13,21 +13,22 @@
     <body>
         <nav class="navbar navbar-light bg-light">
             <a class="navbar-brand" href="#">
-                {% load static %}<img src="{% static 'logo.png' %}" width="40" height="40" class="d-inline-block align-top" alt="">
-                Latest News Aggregator
+                {% load static %}<img src="{% static 'logoN.jpg' %}" width="40" height="40" class="d-inline-block align-top" alt="">
+                NewsTracker
               </a>
             <span class="navbar-text">
                 <span class="badge badge-secondary">Last updated at:<br> {{ lastRunTime }}</span>
             </span>
         </nav>
-        <div style="display: flex; flex-direction: row; flex-wrap: wrap">
+        
+        <div style="display: flex; flex-direction: row; flex-wrap: wrap; margin-top: 15px;" class="justify-content-center">
 
             {% for card in scrapedData %}
             {#  Single Card Template:#}
             <div class="card" style="width: 27rem; margin: 15px">
                 <div class="card-body">
                     <div style="display: flex; flex-direction: row">
-                        <h5 class="card-title" style="color: darkgray;">{{ card.newsTitle }}</h5>
+                        <h5 class="card-title" style="color: rgb(214, 8, 8);">{{ card.newsTitle }}</h5>
                     </div>
                     <ul>
                     {% for newsData in card.data %}
@@ -41,5 +42,8 @@
             {% endfor %}
           
         </div>
+
+        <h5 style="color: rgb(214, 8, 8); margin-top: 10px; margin-left: 20px;">What is NewsTracker?</h5>
+        <p style="margin-left: 20px;">NewsTracker collects new stories and articles around the world from various places and shows them here. All at&nbsp; <strong>ONE</strong> &nbsp;place!</p>
     </body>
 </html>
