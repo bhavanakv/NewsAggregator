@@ -4,6 +4,7 @@ from pollData.models import Lastruntime, Newsblog, Scrapeddata
 from datetime import datetime
 import requests
 from bs4 import BeautifulSoup as bs
+from django.http import JsonResponse
 
 # Create your views here.
 def index(request):
@@ -13,8 +14,8 @@ def lastRunTime(request,pk):
     runtime_obj = Lastruntime.objects.get(pk=pk)
     lastruntime = runtime_obj.lastscrapedtime
     data_obj = Scrapeddata.objects.all()
-    news_titles = Newsblog.objects.values('name').distinct()
-    news_titles = [title.get('name') for title in news_titles]
+    news_titles = Newsblog.objects.values('name','link').distinct('name')
+    news_titles = [(title.get('name'),title.get('link')) for title in news_titles]
     data_from_db = []
     scraped_data = []
     for obj in data_obj:
@@ -22,14 +23,18 @@ def lastRunTime(request,pk):
             "headline" : obj.headline,
             "description" : obj.description,
             "link" : obj.written_by,
-            "blog_name" : obj.blog.name,
-            "blog_link" : obj.blog.link
+            "blog_name" : obj.blog.name
         }
         data_from_db.append(record)
     for title in news_titles:
-        data = list(filter(lambda x: x.get('blog_name') == title, data_from_db))
+        data = list(filter(lambda x: x.get('blog_name') == title[0], data_from_db))
+        if title[0] == "NY Times":
+            news_link = "https://www.nytimes.com/"
+        else:
+            news_link = title[1]
         scraped_news = {
-            "newsTitle" : title,
+            "newsTitle" : title[0],
+            "newsLink": news_link,
             "data" : data
         }
         scraped_data.append(scraped_news)
@@ -135,4 +140,4 @@ def addScrapeData(request):
 
     updateRunTime()
         
-    return render(request,'hello.html',{ 'name' : 'Bhavana'})
+    return JsonResponse({'status': 'OK', 'message': 'Scraped the data successfully'})

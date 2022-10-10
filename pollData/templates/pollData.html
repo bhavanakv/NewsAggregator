@@ -28,7 +28,7 @@
             <div class="card" style="width: 27rem; margin: 15px">
                 <div class="card-body">
                     <div style="display: flex; flex-direction: row">
-                        <h5 class="card-title" style="color: rgb(214, 8, 8);">{{ card.newsTitle }}</h5>
+                        <a href={{ card.newsLink }}><h5 class="card-title" style="color: rgb(214, 8, 8);">{{ card.newsTitle }}</h5></a>
                     </div>
                     <ul>
                     {% for newsData in card.data %}
