@@ -1,6 +1,5 @@
 from operator import contains
 from django.shortcuts import render
-from django.http import HttpResponse
 from pollData.models import Lastruntime, Newsblog, Scrapeddata
 from datetime import datetime
 import requests
@@ -50,7 +49,7 @@ def updateRunTime():
 def scrapebyWebpage(soup, name, blog_id, rows):
     
     if name == "BBC News":
-        secondary_items = soup.find_all(True, {"class":["nw-c-top-stories__primary-item","nw-c-top-stories__secondary-item"]})
+        secondary_items = soup.find_all(True, {"class":["nw-c-top-stories__primary-item","nw-c-top-stories__secondary-item"]})[:6]
         for item in secondary_items:
             rows = rows + 1
             item_link = "https://bbc.com" + item.find("a")['href']
@@ -64,7 +63,7 @@ def scrapebyWebpage(soup, name, blog_id, rows):
     
             
     if name == "NBC News":
-        for item in soup.find_all('h2', {"class": "tease-card__headline"}):
+        for item in soup.find_all('h2', {"class": "tease-card__headline"})[:6]:
             rows = rows + 1
             item_link = item.a['href']
             item_heading = item.text
@@ -89,6 +88,20 @@ def scrapebyWebpage(soup, name, blog_id, rows):
             item_description = item.find('div', {"class": "summary-item__dek"}).text
             scrapedData = Scrapeddata(id=rows,headline=item_heading, description=item_description, timestamp=datetime.now(), blog=blog_id, written_by=item_link)
             scrapedData.save()
+
+    
+    if name == "Forbes":
+        for item in soup.findAll('article', {"class":"stream-item"})[:6]:
+            rows = rows + 1
+            item_link = item.a['href']
+            item_heading = item.a.text
+            if item.find('div',{"class":"stream-item__description"}) is not None:
+                item_description = item.find('div',{"class":"stream-item__description"}).text
+            else:
+                item_description = " "
+            scrapedData = Scrapeddata(id=rows,headline=item_heading, description=item_description, timestamp=datetime.now(), blog=blog_id, written_by=item_link)
+            scrapedData.save()
+            
 
 def scrapeByApi(data, name, blog_id, rows):
     if name == "NY Times":
