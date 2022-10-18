@@ -95,7 +95,10 @@ def scrapebyWebpage(soup, name, blog_id, rows):
             rows = rows + 1
             item_link = "https://wired.com" + item.a['href']
             item_heading = item.a.text
-            item_description = item.find('div', {"class": "summary-item__dek"}).text
+            if(item.find('div', {"class": "summary-item__dek"}) is not None):
+                item_description = item.find('div', {"class": "summary-item__dek"}).text
+            else:
+                item_description = " "
             scrapedData = Scrapeddata(id=rows,headline=item_heading, description=item_description, timestamp=datetime.now(), blog=blog_id, written_by=item_link)
             scrapedData.save()
 

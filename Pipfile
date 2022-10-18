@@ -9,6 +9,7 @@ django-debug-toolbar = "*"
 psycopg2 = "*"
 beautifulsoup4 = "*"
 requests = "*"
+apscheduler = "*"
 
 [dev-packages]
 
