@@ -21,6 +21,6 @@ urlpatterns = [
     path('hello/', include('pollData.urls')),
     path('admin/', admin.site.urls),
     path('_debug_/',include(debug_toolbar.urls)),
-    path('runtime/', include('pollData.urls')),
+    path('news/', include('pollData.urls')),
     path('scrapeData/', include('pollData.urls'))
 ]
