@@ -3,6 +3,6 @@ from pollData import views
 
 urlpatterns = [
     path('world/', views.index, name ='index'),
-    path('<int:pk>/', views.lastRunTime, name = 'lastRunTime'),
+    path('<int:pk>/', views.getScrapeData, name = 'getScrapeData'),
     path('', views.addScrapeData, name="addScrapeData")
 ]
