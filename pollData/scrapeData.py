@@ -20,7 +20,7 @@ def get_data():
     for title in news_titles:
         data = list(filter(lambda x: x.get('blog_name') == title[0], data_from_db))
         if title[0] == "NY Times":
-            news_link = "https://www.nytimes.com/"
+            news_link = "https://www.nytimes.com/section/world"
         else:
             news_link = title[1]
         scraped_news = {
@@ -98,7 +98,12 @@ def scrapebyWebpage(soup, name, blog_id, rows):
             if(item.find('div', {"class": "summary-item__dek"}) is not None):
                 item_description = item.find('div', {"class": "summary-item__dek"}).text
             else:
-                item_description = " "
+                item_page = requests.get(item_link)
+                page_soup = bs(item_page.content, 'html.parser')
+                if page_soup.find('div',{"class" : ["content-header__accreditation"]}):
+                    item_description = page_soup.find_all('div',{"class" : ["content-header__accreditation"]})[0].div.text
+                else:
+                    item_description = " "
             scrapedData = Scrapeddata(id=rows,headline=item_heading, description=item_description, timestamp=datetime.now(), blog=blog_id, written_by=item_link)
             scrapedData.save()
 
