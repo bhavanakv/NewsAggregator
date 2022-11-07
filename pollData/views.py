@@ -13,13 +13,13 @@ def index(request):
     logger.info("Rendering the html file")
     return render(request,'hello.html',{ 'name' : 'Bhavana'})
 
-def getScrapeData(request,pk):
+def getScrapeData(request):
     """
     REST API to get the data from DB and return as a JSON response
 
     """
     logger.debug("Beginning to read the data from database")
-    runtime_obj = Lastruntime.objects.get(pk=pk)
+    runtime_obj = Lastruntime.objects.get(pk=1)
     # Fetching last updated time
     lastruntime = runtime_obj.lastscrapedtime
     # Fetching scraped data from DB
@@ -45,3 +45,12 @@ def addScrapeData(request):
 
     # Sending JSON response after successful update to DB
     return JsonResponse({'status': 'OK', 'message': 'Scraped the data successfully'})
+
+def getLastRunTime(request):
+    """
+    REST API to get the time when the scraping was last done
+
+    """
+    runtime = scrapeData.getLastRunTime()
+    logger.info("Returning the last runtime as: {0}".format(runtime))
+    return JsonResponse({'status': 'OK', 'lastRunTime': runtime})

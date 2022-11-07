@@ -64,6 +64,15 @@ def updateRunTime():
     logger.info("Updating last updated time to: {0}".format(runtime_obj.lastscrapedtime))
     runtime_obj.save()
 
+def getLastRunTime():
+    """
+    Function to fetch the last runtime. This time indicates when the scraping was done and headlines were saved into DB successfully.
+    
+    """
+    runtime_obj = Lastruntime.objects.get(pk=1)
+    logger.debug("Fetched the last runtime as: {0}".format(runtime_obj.lastscrapedtime))
+    return runtime_obj.lastscrapedtime
+
 def addDataToDB():
     """
     Function to scrape and add the news data for each news blog to DB.
