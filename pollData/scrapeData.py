@@ -118,13 +118,16 @@ def scrapebyWebpage(soup, name, blog_id, rows):
             # Link for article
             item_link = "https://bbc.com" + item.find("a")['href']
             # Headline of the article
-            item_heading = item.find("a").text
+            if item.find(class_= "gs-c-promo-heading__title") is not None:
+                item_heading = item.find(class_= "gs-c-promo-heading__title").text
+            else:
+                item_heading = item.find("a").text
             # Scraping short description of the article in home page 
             if item.find(class_= "gs-c-promo-summary") is not None:
                 item_description = item.find(class_= "gs-c-promo-summary").text
             else:
                 logger.debug("Could not find summary for link: {0}".format(item_link))
-                item_description = ""
+                item_description = "N/A"
             # Saving the data into DB
             scrapedData = Scrapeddata(id=rows,headline=item_heading, description=item_description, timestamp=datetime.now(), blog=blog_id, written_by=item_link)
             logger.debug("Saving data: {0} in row: {1}".format(scrapedData.headline, rows))
@@ -132,9 +135,12 @@ def scrapebyWebpage(soup, name, blog_id, rows):
     
             
     if name == "NBC News":
+        # Count for having no of headlines scraped. If less than 5, then scraping is done again
+        count = 0
         # Fetching all the cards on which news data is described present on home page
         for item in soup.find_all('h2', {"class": "tease-card__headline"})[:5]:
             rows = rows + 1
+            count = count + 1
             # Link for article
             item_link = item.a['href']
             # Headline of the article
@@ -155,6 +161,38 @@ def scrapebyWebpage(soup, name, blog_id, rows):
             scrapedData = Scrapeddata(id=rows,headline=item_heading, description=item_description, timestamp=datetime.now(), blog=blog_id, written_by=item_link)
             logger.debug("Saving data: {0} in row: {1}".format(scrapedData.headline, rows))
             scrapedData.save()
+
+        # Scraping the other headlines if main headlines are less in number
+        if count < 6:
+            for item in soup.find_all('h3',{"class":"cover-spread-tease__headline"})[:(6-count)]:
+                rows = rows + 1
+                count = count + 1
+                # Link of the article
+                item_link = item.a['href']
+                # Headline of the article from link
+                item_heading = item.text
+                # Description is not available on home page, so to get short description, we need to go to the link. 
+                # Again the page has to be scraped to get the description
+                # Sometimes, on clicking the link it is a video for which there is no description, in this case scraping fails
+                try:
+                    item_page = requests.get(item_link)
+                    page_soup = bs(item_page.content, 'html.parser')
+                    item_description = ""
+                    for page_item in page_soup.find_all('div', {"class" : ["article-hero-headline"]}):
+                        # Fetching the children of the tag to get description
+                        descendants = page_item.descendants
+                        for d in descendants:
+                            if d.name == 'div':
+                                item_description = d.text
+                except:
+                    # If the description is not available then description is N/A
+                    logger.error("Could not scrape short description for link: {0}", item_link)
+                    item_description = "N/A"
+
+                # Saving the data into DB 
+                scrapedData = Scrapeddata(id=rows,headline=item_heading, description=item_description, timestamp=datetime.now(), blog=blog_id, written_by=item_link)
+                logger.debug("Saving data: {0} in row: {1}".format(scrapedData.headline, rows))
+                scrapedData.save()
     
 
     if name == "Wired":
@@ -169,6 +207,7 @@ def scrapebyWebpage(soup, name, blog_id, rows):
                 item_description = item.find('div', {"class": "summary-item__dek"}).text
             else:
                 # Description is not available on home page, so to get short description, we need to go to the link. 
+                # Sometimes description may not be available, in that case it is N/A
                 # Again the page has to be scraped to get the description
                 item_page = requests.get(item_link)
                 page_soup = bs(item_page.content, 'html.parser')
@@ -176,7 +215,7 @@ def scrapebyWebpage(soup, name, blog_id, rows):
                     # Fetching the first child of the tag to get description
                     item_description = page_soup.find_all('div',{"class" : ["content-header__accreditation"]})[0].div.text
                 else:
-                    item_description = " "
+                    item_description = "N/A"
             
             # Saving the data into DB
             scrapedData = Scrapeddata(id=rows,headline=item_heading, description=item_description, timestamp=datetime.now(), blog=blog_id, written_by=item_link)
@@ -192,10 +231,11 @@ def scrapebyWebpage(soup, name, blog_id, rows):
             item_link = item.a['href']
             # Headline of the article
             item_heading = item.a.text
+            # Description of the article. It may be absent
             if item.find('div',{"class":"stream-item__description"}) is not None:
                 item_description = item.find('div',{"class":"stream-item__description"}).text
             else:
-                item_description = " "
+                item_description = "N/A"
             
             # Saving the data into DB
             scrapedData = Scrapeddata(id=rows,headline=item_heading, description=item_description, timestamp=datetime.now(), blog=blog_id, written_by=item_link)
